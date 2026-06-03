@@ -115,6 +115,68 @@
     });
   }
 
+  /* ---------- Lightbox de la galería ---------- */
+  var galleryImgs = Array.prototype.slice.call(
+    document.querySelectorAll('.portfolio-grid .pf img')
+  );
+  if (galleryImgs.length) {
+    var lb = document.createElement('div');
+    lb.className = 'lightbox';
+    lb.setAttribute('role', 'dialog');
+    lb.setAttribute('aria-modal', 'true');
+    lb.setAttribute('aria-hidden', 'true');
+    lb.innerHTML =
+      '<button class="lightbox__close" type="button" aria-label="Cerrar">×</button>' +
+      '<button class="lightbox__nav lightbox__prev" type="button" aria-label="Anterior">‹</button>' +
+      '<figure class="lightbox__figure">' +
+        '<img class="lightbox__img" alt="" />' +
+        '<figcaption class="lightbox__cap"></figcaption>' +
+      '</figure>' +
+      '<button class="lightbox__nav lightbox__next" type="button" aria-label="Siguiente">›</button>';
+    document.body.appendChild(lb);
+
+    var lbImg = lb.querySelector('.lightbox__img');
+    var lbCap = lb.querySelector('.lightbox__cap');
+    var current = 0;
+
+    function showAt(i) {
+      current = (i + galleryImgs.length) % galleryImgs.length;
+      var src = galleryImgs[current];
+      lbImg.src = src.getAttribute('src');
+      lbImg.alt = src.getAttribute('alt') || '';
+      lbCap.textContent = src.getAttribute('alt') || '';
+    }
+    function openLb(i) {
+      showAt(i);
+      lb.classList.add('open');
+      lb.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLb() {
+      lb.classList.remove('open');
+      lb.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    galleryImgs.forEach(function (img, i) {
+      img.addEventListener('click', function () { openLb(i); });
+    });
+    lb.querySelector('.lightbox__close').addEventListener('click', closeLb);
+    lb.querySelector('.lightbox__prev').addEventListener('click', function () { showAt(current - 1); });
+    lb.querySelector('.lightbox__next').addEventListener('click', function () { showAt(current + 1); });
+    // Cerrar al tocar el fondo (fuera de la imagen)
+    lb.addEventListener('click', function (e) {
+      if (e.target === lb || e.target.classList.contains('lightbox__figure')) closeLb();
+    });
+    // Teclado: Escape cierra, flechas navegan
+    document.addEventListener('keydown', function (e) {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLb();
+      else if (e.key === 'ArrowLeft') showAt(current - 1);
+      else if (e.key === 'ArrowRight') showAt(current + 1);
+    });
+  }
+
   /* ---------- Año dinámico (por si se actualiza el footer) ---------- */
   // (El footer usa © 2026 fijo según el brief; dejamos el hook por si hace falta.)
 })();
